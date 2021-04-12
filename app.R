@@ -1,41 +1,69 @@
-#
-
 library(shiny)
+library(phangorn)
+library(ape)
+library(phytools)
 
+
+# Define UI for data upload app ----
 ui <- fluidPage(
   
-  titlePanel("Old Faithful Geyser Data"),
+  titlePanel("phylotree"),
   
-  # Sidebar with a slider input for number of bins 
   sidebarLayout(
+    
+    # Sidebar panel for inputs ----
     sidebarPanel(
-      sliderInput("bins",
-                  "Number of bins:",
-                  min = 1,
-                  max = 50,
-                  value = 30)
+      
+      # Input: Select a file ----
+      fileInput("file1", "alignment",
+                multiple = TRUE,
+                accept = "dna"),
+      
+      h5("Introduce alignment in interleaved format", align = 'justify',     
+         tags$style(HTML("
+      @import url('//fonts.googleapis.com/css?family=Lobster|Cabin:400,700');
+      
+      h5 {
+        line-height: 2;
+        color: #4D4D4D;
+      }
+
+    "))),
+      width = 3
+      # nugget
+      
     ),
     
-    # Show a plot of the generated distribution
+    # Main panel for displaying outputs ----
     mainPanel(
-      plotOutput("distPlot")
+      fluidRow(
+        
+        column(8, plotOutput("tree")
+        )
+      # Output: Data file ----
+      
+      
     )
+    
   )
 )
 
-# Define server logic required to draw a histogram
+)
+
+# Define server logic to read selected file ----
 server <- function(input, output) {
   
-  output$distPlot <- renderPlot({
-    # generate bins based on input$bins from ui.R
-    x    <- faithful[, 2] 
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+  output$tree <- renderPlot({
     
-    # draw the histogram with the specified number of bins
-    hist(x, breaks = bins, col = 'darkgray', border = 'white')
+    req(input$file1)
+    primates <- read.phyDat(input$file1$datapath, format = "interleaved", type = "DNA")
+    dm  <- dist.ml(primates)
+    treeUPGMA  <- upgma(dm)
+    plot(treeUPGMA, main="UPGMA")
+    
   })
+  
 }
 
-# Run the application 
-shinyApp(ui = ui, server = server)
-
+# Create Shiny app ----
+shinyApp(ui, server)
