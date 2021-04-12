@@ -38,7 +38,7 @@ ui <- fluidPage(
     mainPanel(
       fluidRow(
         
-        column(8, plotOutput("tree")
+        column(8, plotOutput("tree", click = "plot_click")
         )
       # Output: Data file ----
       
